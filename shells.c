@@ -5,8 +5,6 @@
 #include <limits.h>
 #include <errno.h>
 
-#define BYTE_MAX 	255
-#define BYTE_MIN 	0
 #define PORT_MAX 	65535
 #define PORT_MIN 	0
 
@@ -33,10 +31,8 @@
 #define DEFAULT		"1m"
 /* Reset Color */
 #define RESET_TERM	"\033[0m"
-/* Example printf color */
-/* printf(D_FGREEN DEFAULT"Change color!\n"RESET_TERM); */
 
-#define NUMBER_OF_FUNCTIONS	7
+#define NUMBER_OF_FUNCTIONS	8
 
 void usage(void) {
 	fprintf(stderr, "[shells v1.0]\n\n");
@@ -143,6 +139,7 @@ language_map_type language_map[NUMBER_OF_FUNCTIONS] = {
 	{"python",python},
 	{"perl",perl},
 	{"netcat",netcat},
+	{"nc",netcat},
 	{"bash",bash},
 	{"php",php},
 	{"ruby",ruby},
@@ -160,11 +157,11 @@ selector get_function(char *language) {
 }
 
 int check_address(char *ip, char *port, int family) {
-	errno = 0;
 	unsigned char buffer[sizeof(struct in_addr)];
 	char *endptr = NULL;
 
 	/* Check port */
+	errno = 0;
 	long lport = strtol(port, &endptr, 10);
 	if(endptr == port || *endptr != '\0' || 
 		(errno == ERANGE && (lport == LONG_MAX || lport == LONG_MIN)) ||
@@ -177,7 +174,6 @@ int check_address(char *ip, char *port, int family) {
 			usage();
 		}
 		return 0;
-
 	} else if(family==AF_INET6) {
 		/* TODO: Implement IPv6 support */
 		fprintf(stderr, "[X] IPv6 Currently not supported.\n");
@@ -193,16 +189,15 @@ void get_specific_shell(char *ip, char *port, char *language) {
 	if(address_ret!=0){
 		usage();
 	}
-	selector f = get_function(language);
+	selector program = get_function(language);
 	if(f==NULL) {
 		usage();
 	}
-	f(ip,port);
+	program(ip,port);
 	exit(0);
 }
 
 int main(int argc, char **argv) {
-
 	/* Request interactive tty upgrade */
 	if( (argc==2) && (strcmp(argv[1],"-i")==0) ) {
 		interactive(argv[1],argv[2]);

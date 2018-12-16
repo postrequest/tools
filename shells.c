@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <arpa/inet.h>
+#include <limits.h>
+#include <errno.h>
 
 #define BYTE_MAX 	255
 #define BYTE_MIN 	0
@@ -48,86 +51,6 @@ void usage(void) {
 	fprintf(stderr, "\t-l\tLanguage or program for shell\n");
 	fprintf(stderr, "\t-h\tHelp menu\n");
 	exit(1);
-}
-
-int valid_ipv4(char *address) {
-	int byte1, byte2, byte3, byte4, period;
-	byte1 = byte2 = byte3 = byte4 = period = 0;
-
-	if(address==NULL)
-		return 1;
-
-	while(*address!='\0') {
-		if( (*address >= '0') && (*address <= '9') ) {
-			if(period==0) {
-				if(byte1==0)
-					byte1 += (int)(*address-'0');
-				else
-					byte1 = (byte1*10) + ((int)(*address-'0'));
-				/* Check that each byte is between 0 - 255 */
-				if( (byte1 > BYTE_MAX) || (byte1 < BYTE_MIN) )
-					return 1;
-			} else if(period==1) {
-				if(byte2==0)
-					byte2 += (int)(*address-'0');
-				else
-					byte2 = (byte2*10) + ((int)(*address-'0'));
-				/* Check that each byte is between 0 - 255 */
-				if( (byte2 > BYTE_MAX) || (byte2 < BYTE_MIN) )
-					return 1;
-			} else if(period==2) {
-				if(byte3==0)
-					byte3 += (int)(*address-'0');
-				else
-					byte3 = (byte3*10) + ((int)(*address-'0'));
-				/* Check that each byte is between 0 - 255 */
-				if( (byte3 > BYTE_MAX) || (byte3 < BYTE_MIN) )
-					return 1;
-			} else if(period==3) {
-				if(byte4==0)
-					byte4 += (int)(*address-'0');
-				else
-					byte4 = (byte4*10) + ((int)(*address-'0'));
-				/* Check that each byte is between 0 - 255 */
-				if( (byte4 > BYTE_MAX) || (byte4 < BYTE_MIN) )
-					return 1;
-			} else {
-				return 1;
-			}
-		} else if(*address == '.') {
-			if(period==3)
-				return 1;
-			period++;
-		} else {
-			return 1;
-		}
-		address++;
-	}
-	return 0;
-}
-
-int valid_port(char *port) {
-	int test = 0;
-
-	if(port==NULL)
-		return 1;
-
-	while(*port!='\0') {
-		if( (*port>= '0') && (*port<= '9') ) {
-			if(test==0)
-				test += (int)(*port-'0');
-			else
-				test = (test*10) + ((int)(*port-'0'));
-			/* Check port is between 0 - 65535 */
-			if( (test > PORT_MAX) || (test < PORT_MIN) ) {
-				return 1;
-			}
-		} else {
-			return 1;
-		}
-		port++;
-	}
-	return 0;
 }
 
 void python(char *ip, char *port) {
@@ -236,7 +159,50 @@ selector get_function(char *language) {
 	return NULL;
 }
 
+int check_address(char *ip, char *port, int family) {
+	errno = 0;
+	unsigned char buffer[sizeof(struct in_addr)];
+	char *endptr = NULL;
+
+	/* Check port */
+	long lport = strtol(port, &endptr, 10);
+	if(endptr == port || *endptr != '\0' || 
+		(errno == ERANGE && (lport == LONG_MAX || lport == LONG_MIN)) ||
+		(lport > PORT_MAX || lport < PORT_MIN)) {
+		usage();
+	}
+	/* Check IP address */
+	if(family==AF_INET) {
+		if(inet_pton(AF_INET, ip, buffer)!=1) {
+			usage();
+		}
+		return 0;
+
+	} else if(family==AF_INET6) {
+		/* TODO: Implement IPv6 support */
+		fprintf(stderr, "[X] IPv6 Currently not supported.\n");
+		usage();
+	}
+	return 1;
+}
+
+void get_specific_shell(char *ip, char *port, char *language) {
+	int address_ret = 1;
+
+	address_ret = check_address(ip,port,AF_INET);
+	if(address_ret!=0){
+		usage();
+	}
+	selector f = get_function(language);
+	if(f==NULL) {
+		usage();
+	}
+	f(ip,port);
+	exit(0);
+}
+
 int main(int argc, char **argv) {
+
 	/* Request interactive tty upgrade */
 	if( (argc==2) && (strcmp(argv[1],"-i")==0) ) {
 		interactive(argv[1],argv[2]);
@@ -247,19 +213,9 @@ int main(int argc, char **argv) {
 		int i;
 		for(i=1; i<4; i++) {
 			if( (i==3) && (strcmp(argv[i],"-l")==0) ) {
-				selector f = get_function(argv[i+1]);
-				if(f==NULL) {
-					usage();
-				}
-				f(argv[1],argv[2]);
-				exit(0);
+				get_specific_shell(argv[1],argv[2],argv[i+1]);
 			} else if( (i==1) && (strcmp(argv[i],"-l")==0) ) {
-				selector f = get_function(argv[i+1]);
-				if(f==NULL) {
-					usage();
-				}
-				f(argv[3],argv[4]);
-				exit(0);
+				get_specific_shell(argv[3],argv[4],argv[i+1]);
 			}
 		}
 		usage();
@@ -268,7 +224,7 @@ int main(int argc, char **argv) {
 		usage();
 	}
 
-	if( (valid_ipv4(argv[1])!=0) || (valid_port(argv[2])!=0) ) {
+	if(check_address(argv[1],argv[2],AF_INET)!=0) {
 		usage();
 	}
 	/* Python */

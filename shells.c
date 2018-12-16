@@ -205,13 +205,10 @@ int main(int argc, char **argv) {
 	}
 	/* Specify language or platform */
 	if(argc==5) {
-		int i;
-		for(i=1; i<4; i++) {
-			if( (i==3) && (strcmp(argv[i],"-l")==0) ) {
-				get_specific_shell(argv[1],argv[2],argv[i+1]);
-			} else if( (i==1) && (strcmp(argv[i],"-l")==0) ) {
-				get_specific_shell(argv[3],argv[4],argv[i+1]);
-			}
+		if(strcmp(argv[3],"-l")==0) {
+			get_specific_shell(argv[1],argv[2],argv[4]);
+		} else if(strcmp(argv[1],"-l")==0) {
+			get_specific_shell(argv[3],argv[4],argv[2]);
 		}
 		usage();
 	}

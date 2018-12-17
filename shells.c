@@ -32,7 +32,7 @@
 /* Reset Color */
 #define RESET_TERM	"\033[0m"
 
-#define NUMBER_OF_FUNCTIONS	8
+#define NUMBER_OF_FUNCTIONS	7
 
 void usage(void) {
 	fprintf(stderr, "[shells v1.0]\n\n");
@@ -138,7 +138,6 @@ typedef struct {
 language_map_type language_map[NUMBER_OF_FUNCTIONS] = {
 	{"python",python},
 	{"perl",perl},
-	{"netcat",netcat},
 	{"nc",netcat},
 	{"bash",bash},
 	{"php",php},
@@ -190,7 +189,7 @@ void get_specific_shell(char *ip, char *port, char *language) {
 		usage();
 	}
 	selector program = get_function(language);
-	if(f==NULL) {
+	if(program==NULL) {
 		usage();
 	}
 	program(ip,port);
@@ -198,6 +197,8 @@ void get_specific_shell(char *ip, char *port, char *language) {
 }
 
 int main(int argc, char **argv) {
+	int i;
+
 	/* Request interactive tty upgrade */
 	if( (argc==2) && (strcmp(argv[1],"-i")==0) ) {
 		interactive(argv[1],argv[2]);
@@ -219,26 +220,14 @@ int main(int argc, char **argv) {
 	if(check_address(argv[1],argv[2],AF_INET)!=0) {
 		usage();
 	}
-	/* Python */
-	python(argv[1],argv[2]);
-	/* Perl */
-	printf("\n");
-	perl(argv[1],argv[2]);
-	/* Netcat */
-	printf("\n");
-	netcat(argv[1],argv[2]);
-	/* Bash */
-	printf("\n");
-	bash(argv[1],argv[2]);
-	/* PHP */
-	printf("\n");
-	php(argv[1],argv[2]);
-	/* Ruby */
-	printf("\n");
-	ruby(argv[1],argv[2]);
-	/* msfvenom */
-	printf("\n");
-	msfvenom(argv[1],argv[2]);
+
+	/* Print shells */
+	for(i=0; i<NUMBER_OF_FUNCTIONS; i++) {
+		language_map[i].f(argv[1],argv[2]);
+		if(i!=NUMBER_OF_FUNCTIONS-1) {
+			printf("\n");
+		}
+	}
 
 	return 0;
 }

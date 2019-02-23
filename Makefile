@@ -1,1 +1,1 @@
-default: shells
+default: shells gitupdater

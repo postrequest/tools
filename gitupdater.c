@@ -77,7 +77,6 @@ int main(void)
         }
         closedir(dirp);
     }
-    printf("[*] Done\n");
 
     return 0;
 }

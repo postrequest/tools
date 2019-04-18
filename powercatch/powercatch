@@ -827,6 +827,7 @@ powershell_commands = WordCompleter(['Add-BitsFile',
                                      '[environment]::Is64BitOperatingSystem',
                                      '[environment]::Is64BitProcess',
                                      '[environment]',
+                                     '$ExecutionContext.SessionState.LanguageMode',
                                      ],
                                     ignore_case=True)
 

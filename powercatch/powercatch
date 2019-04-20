@@ -4,7 +4,6 @@ from prompt_toolkit.shortcuts import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 import sys
 import socket
-import time
 import re
 from socket import MSG_DONTWAIT
 
@@ -870,7 +869,6 @@ def interactive_shell(port, proto):
     print("[*] listening on 0.0.0.0:%d" % port)
     conn, addr = s.accept()
     print('[*] Accepted connection from {} on port {}'.format(addr[0], addr[1]))
-    time.sleep(1)
     prompt = receive_data(conn)
     session = PromptSession(completer=powershell_commands,
                             auto_suggest=AutoSuggestFromHistory(),
@@ -891,8 +889,9 @@ def interactive_shell(port, proto):
                 conn.close()
                 s.close()
                 sys.exit()
+            if command[-1:] != "\n":
+                command += "\n"
             conn.send(str.encode(command))
-            time.sleep(2)
             prompt = receive_data(conn)
 
 

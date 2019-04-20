@@ -1,1 +1,9 @@
-Currently only tested with https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellTcp.ps1
+# Powercatcher
+
+Listen for Powershell reverse shells!
+
+Works with nc.exe || Nishang Shells
+
+### TODO:
+- Support cmd.exe shell
+- Add support for folder && file completion

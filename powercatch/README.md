@@ -1,4 +1,4 @@
-# Powercatcher
+# Powercatch
 
 Listen for Powershell reverse shells!
 

@@ -15,24 +15,38 @@ type progress struct {
 	bytes uint64
 }
 
-func transferStreams(conn net.Conn) {
-	c := make(chan progress)
-	copy := func(r io.ReadCloser, w io.WriteCloser) {
-		defer func() {
-			r.Close()
-			w.Close()
-		}()
-		n, err := io.Copy(w, r)
-		if err != nil {
-			log.Printf("[%s]: ERROR: %s\n", conn.RemoteAddr(), err)
+func transferStreams(conn net.Conn, command string) {
+	if command != "" {
+		if _, err := exec.LookPath(command); err != nil {
+			flag.Usage()
+			os.Exit(1)
 		}
-		c <- progress{bytes: uint64(n)}
-	}
-	go copy(conn, os.Stdout)
-	go copy(os.Stdin, conn)
+		log.Printf("Opened connection: %s\n", conn.RemoteAddr())
+		cmd := exec.Command(command)
+		cmd.Stdin = conn
+		cmd.Stdout = conn
+		cmd.Stderr = conn
+		cmd.Run()
+	} else {
+		log.Printf("Opened connection: %s\n", conn.RemoteAddr())
+		c := make(chan progress)
+		copy := func(r io.ReadCloser, w io.WriteCloser) {
+			defer func() {
+				r.Close()
+				w.Close()
+			}()
+			n, err := io.Copy(w, r)
+			if err != nil {
+				log.Printf("[%s]: ERROR: %s\n", conn.RemoteAddr(), err)
+			}
+			c <- progress{bytes: uint64(n)}
+		}
+		go copy(conn, os.Stdout)
+		go copy(os.Stdin, conn)
 
-	_ = <-c
-	log.Printf("Connection closed by remote peer: %s\n", conn.RemoteAddr())
+		_ = <-c
+		log.Printf("Connection closed by remote peer: %s\n", conn.RemoteAddr())
+	}
 }
 
 func listenServer(port int, command string, udp bool) {
@@ -48,27 +62,12 @@ func listenServer(port int, command string, udp bool) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer s.Close()
 
+	defer s.Close()
 	conn, _ := s.Accept()
 	defer conn.Close()
 
-	if command != "" {
-		if _, err := exec.LookPath(command); err != nil {
-			flag.Usage()
-			os.Exit(1)
-		}
-		log.Printf("Opened connection: %s\n", conn.RemoteAddr())
-		cmd := exec.Command(command)
-		cmd.Stdin = conn
-		cmd.Stdout = conn
-		cmd.Stderr = conn
-		cmd.Run()
-	} else {
-		log.Printf("Opened connection: %s\n", conn.RemoteAddr())
-		transferStreams(conn)
-	}
-	os.Exit(0)
+	transferStreams(conn, command)
 }
 
 func connectClient(host string, port string, command string, udp bool) {
@@ -85,21 +84,7 @@ func connectClient(host string, port string, command string, udp bool) {
 	}
 	defer s.Close()
 
-	if command != "" {
-		if _, err := exec.LookPath(command); err != nil {
-			flag.Usage()
-			os.Exit(1)
-		}
-		log.Printf("Opened connection: %s\n", s.RemoteAddr())
-		cmd := exec.Command(command)
-		cmd.Stdin = s
-		cmd.Stdout = s
-		cmd.Stderr = s
-		cmd.Run()
-	} else {
-		log.Printf("Opened connection: %s\n", s.RemoteAddr())
-		transferStreams(s)
-	}
+	transferStreams(s, command)
 }
 
 func main() {

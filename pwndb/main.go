@@ -63,7 +63,7 @@ func init() {
 }
 
 func main() {
-	var user, domain string
+	var user, domain, totalString string
 	flag.StringVar(&user, "user", "", "Username")
 	flag.StringVar(&domain, "domain", "", "Domain to check")
 	flag.Parse()
@@ -79,8 +79,12 @@ func main() {
 	dump := parseDump(rawData)
 	if len(dump) < 1 {
 		log.Fatalln("No data found")
+	} else if len(dump) == 1 {
+		totalString = "[1 User]\n"
+	} else {
+		totalString = fmt.Sprintf("[%d Users]\n", len(dump))
 	}
-	fmt.Printf("[%d Users]\n", len(dump))
+	fmt.Printf(totalString)
 	for _, user := range dump {
 		fmt.Println(user.email + ":" + user.password)
 	}

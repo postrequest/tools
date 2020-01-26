@@ -10,12 +10,14 @@ import (
 	"strings"
 )
 
-type user struct {
+// User is the struct that contains leaked credentials
+type User struct {
 	email    string
 	password string
 }
 
-func checkDump(user string, domain string) string {
+// CheckDump checks pwndb for leaked credentials
+func CheckDump(user string, domain string) string {
 	postParam := url.Values{
 		"luser":      {user},
 		"domain":     {domain},
@@ -35,14 +37,15 @@ func checkDump(user string, domain string) string {
 	return string(body)
 }
 
-func parseDump(rawData string) (users []user) {
+// ParseDump parses the data returned from CheckDump
+func ParseDump(rawData string) (users []User) {
 	leaks := strings.Split(rawData, "Array")[2:]
 	for _, leak := range leaks {
 		username := strings.Split(strings.Split(leak, "[luser] => ")[1], "\n")[0]
 		domain := strings.Split(strings.Split(leak, "[domain] => ")[1], "\n")[0]
 		email := username + "@" + domain
 		password := strings.Split(strings.Split(leak, "[password] => ")[1], "\n")[0]
-		users = append(users, user{email, password})
+		users = append(users, User{email, password})
 	}
 	return
 }
@@ -74,9 +77,13 @@ func main() {
 		log.Fatalln("Please enter a domain or user to check")
 	}
 
-	body := checkDump(user, domain)
+	body := CheckDump(user, domain)
+	// Errors if data not returned correctly
+	if !strings.Contains(body, "<pre>") {
+		log.Fatalln("Error contacting pwndb")
+	}
 	rawData := strings.Split(strings.Split(body, "<pre>\n")[1], "</pre>")[0]
-	dump := parseDump(rawData)
+	dump := ParseDump(rawData)
 	if len(dump) < 1 {
 		log.Fatalln("No data found")
 	} else if len(dump) == 1 {

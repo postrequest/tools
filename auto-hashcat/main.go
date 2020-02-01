@@ -67,7 +67,7 @@ func main() {
 }
 
 func dictionary(hashcatPath string, hashes string, passwordDir string) {
-	log.Println("Running hashes againts dictionaries only")
+	log.Println("Running hashes against dictionaries only")
 	args := []string{"--force", "-o", "cracked.txt", "-a", "0", "-m", "1000", hashes, passwordDir}
 	// get sub directories that contain password files
 	files, err := ioutil.ReadDir(passwordDir)

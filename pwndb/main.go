@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // User is the struct that contains leaked credentials
@@ -25,7 +26,10 @@ func CheckDump(user string, domain string) string {
 		"domainopr":  {"0"},
 		"submitform": {"em"},
 	}
-	resp, err := http.PostForm("https://pwndb2am4tzkvold.onion.ws/", postParam)
+	client := http.Client{
+		Timeout: 30 * time.Second,
+	}
+	resp, err := client.PostForm("https://pwndb2am4tzkvold.onion.ws/", postParam)
 	if err != nil {
 		log.Fatalln(err)
 	}
